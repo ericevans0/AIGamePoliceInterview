@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -76,10 +77,21 @@ public class GPTChatAPIAccess : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
         {
-            errorCallback.Invoke(request.error, correlationId);
-            Debug.LogError($"Error: {request.error}");
             Debug.Log(request.downloadHandler.text);
+
+            string responseText = request.downloadHandler.text;
+
+            // Parse the JSON string
+            JObject responseObject = JObject.Parse(responseText);
+
+            // Extract the message
+            string errorMessage = responseObject["error"]["message"].ToString();
+
+            // Now you can use errorMessage to show it to the user
+            errorCallback.Invoke("Message from OpenAI API: " + errorMessage, correlationId);
+            Debug.Log(errorMessage);
         }
+
         else
         {
             string jsonStringResponse = request.downloadHandler.text;
